@@ -44,7 +44,7 @@ export class BuilderComponent implements AfterViewInit {
         const parent = graph.getDefaultParent();
         graph.getModel().beginUpdate();
 
-        const vertex1 = graph.insertVertex(parent, null, 'Vertex 1', 20, 20, 120, 60);
+        graph.insertVertex(parent, null, 'Vertex 1', 20, 20, 120, 60);
 
         // graph.insertEdge(parent, '', '', vertex1, vertex2);
       } finally {

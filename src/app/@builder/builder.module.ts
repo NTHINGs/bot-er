@@ -10,6 +10,6 @@ const COMPONENTS = [
   declarations: [...COMPONENTS],
   imports: [],
   providers: [],
-  exports: [...COMPONENTS]
+  exports: [...COMPONENTS],
 })
 export class BuilderModule { }
