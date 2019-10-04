@@ -1,0 +1,68 @@
+stages:
+  - build
+  - validate
+  - plan
+  - apply
+
+build:
+  stage: build
+  image: node:10-alpine
+  script:
+    - npm i
+    - npm run build
+    - tar -cvf infrastructure/bot-er.tar ./dist
+  artifacts:
+    paths:
+      - infrastructure/bot-er.tar
+
+.infra_common: &infra_common
+  image:
+    name: hashicorp/terraform:light
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' 
+  before_script:
+    - cd infrastructure
+    - terraform --version
+    - terraform init
+
+validate:
+  stage: validate
+  <<: *infra_common
+  script:
+    - terraform validate
+  dependencies:
+    - build
+
+plan:
+  stage: plan
+  <<: *infra_common
+  script:
+    - terraform plan -out "planfile"
+  dependencies:
+    - build
+  artifacts:
+    paths:
+      - infrastructure/planfile
+
+apply:
+  stage: apply
+  <<: *infra_common
+  dependencies:
+    - plan
+    - build
+  script:
+    - terraform apply -input=false "planfile"
+  environment:
+    name: test/$CI_COMMIT_REF_SLUG-$CI_PROJECT_ID
+    on_stop: stop_environment
+
+stop_environment:
+  stage: apply
+  <<: *infra_common
+  script:
+    - terraform destroy -auto-approve
+  when: manual
+  environment:
+    name: test/$CI_COMMIT_REF_SLUG-$CI_PROJECT_ID
+    action: stop
